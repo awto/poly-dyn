@@ -16,9 +16,11 @@ module Data.Dynamic.Poly(
     -- * "Data.Dynamic"-like interface
     Dynamic,fromDyn,fromDynamic,toDyn,dynApply,toDynG,
     -- * Explicit type representation
-    Ty,TyG,TM,runTM,ret,(>>>=),var,pvar,(~>),($$),kr,ks,kt,
+    Ty,TyG,TM,runTM,ret,(>>>=),var,varf,pvar,(~>),($$),kr,ks,kt,
     -- * Helpers
-    Fin(..),toInt,Proxy(..),unProxy,N(..),Dict(..)
+    Fin(..),toInt,Proxy(..),unProxy,N(..),Dict(..),
+    -- * Variable names
+    A,B,C,D,E,F,G,K,L,M
     ) where
 
 import Data.Foldable
@@ -137,27 +139,31 @@ data B
 data C
 data D
 data E
-data F :: k -> *
-data G :: k -> *
-data K :: k -> *
-data L :: k -> *
-data M :: k -> *
+data F :: * -> *
+data G :: * -> *
+data K :: * -> *
+data L :: * -> *
+data M :: * -> *
 
 -- | an environment for rigid variable names (splited into * and k -> * kinds 
 --   for better result types readability)
-type FunVarNames = ((Proxy F,A),((Proxy G,B),((Proxy L,C),
-                         ((Proxy K,D),((Proxy M,E),())))))
+type FunVarNames = (Proxy F,(Proxy G,(Proxy L,(Proxy K,(Proxy M,())))))
+
+type StarVarNames = (A,(B,(C,(D,(E,())))))
 
 type family TyVar (f :: k) (n :: N) env :: k
-type instance TyVar (f :: k -> *) Z ((Proxy f',a), t) = f' 
-type instance TyVar (f :: k -> *) (S n) (h, t) = TyVar f n t 
-type instance TyVar (a :: *) Z ((f',a'), t) = a'
+type instance TyVar (f :: * -> *) Z (Proxy f', t) = f' 
+type instance TyVar (f :: k) (S n) (h, t) = TyVar f n t 
+type instance TyVar (a :: *) Z (a', t) = a'
 
 -- | Returns a type variable representation 
 -- it is not pure, it adds variable in an environment, whence
 -- the type is an indexed-monad computation
-var ::  TM n (S n) (Ty (TyVar f n FunVarNames) f)
+var ::  TM n (S n) (Ty (TyVar a n StarVarNames) a)
 var = TM $ \e -> (Succ e, Ty (UVar (IntVar (toInt e))))
+
+varf :: forall (f :: * -> *) n . TM n (S n) (Ty (TyVar f n FunVarNames) f)
+varf = TM $ \e -> (Succ e, Ty (UVar (IntVar (toInt e))))
 
 -- | Returns a type variable representation
 -- Pure version of 'var' with explicit variable's type and an index.
@@ -193,3 +199,7 @@ Ty f $$ Ty a = Ty (UTerm (App f a))
 
 infixr 5 $$
 infixr 3 ~>
+
+
+instance Show Dynamic where
+    show (Dynamic t _) = show t
