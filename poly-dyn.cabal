@@ -1,0 +1,16 @@
+name:                poly-dyn
+version:             0.1.0.0
+synopsis:            Polymorphic dynamics
+license:             BSD3
+license-file:        LICENSE
+author:              Vitaliy Akimov
+maintainer:          vitaliy.akimov@gmail.com
+category:            Data
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:     Data.Dynamic.Poly
+  build-depends:       base ==4.6.*, mtl ==2.1.*, unification-fd ==0.8.*
+  hs-source-dirs:      src
+  ghc-options: -Wall -Werror
