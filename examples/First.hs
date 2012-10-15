@@ -32,7 +32,7 @@ fmapC Dict = fmap
 functTy :: TyG Functor
 functTy = ks "Functor"
 
-fmapTy = runTM $ varf >>>= \f -> var >>>= \a -> var >>>= \b ->
+fmapTy = runTM $ var >>>= \f -> var >>>= \a -> var >>>= \b ->
          ret (dictTy $$ (functTy $$ f) ~> (a ~> b) ~> f $$ a ~> f $$ b)
 
 fmapDyn = toDyn fmapTy fmapC
