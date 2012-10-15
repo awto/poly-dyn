@@ -11,7 +11,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances, FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 {-# LANGUAGE EmptyDataDecls #-}
 module Data.Dynamic.Poly(
     -- * "Data.Dynamic"-like interface
@@ -146,22 +145,23 @@ data M :: k -> *
 
 -- | an environment for rigid variable names (splited into * and k -> * kinds 
 --   for better result types readability)
-type FunVarNames = ((Proxy F,A),((Proxy G,B),((Proxy L,C),((Proxy K,D),((Proxy M,E),())))))
+type FunVarNames = ((Proxy F,A),((Proxy G,B),((Proxy L,C),
+                         ((Proxy K,D),((Proxy M,E),())))))
 
-class TyVar (f :: k) (n :: N) env (f' :: k) | f n env -> f'
-instance TyVar (f :: k -> *) Z ((Proxy f',a), t) f'
-instance TyVar f n t r => TyVar (f :: k -> *) (S n) (h, t) r
-instance TyVar (a :: *) Z ((f',a'), t) a'
+type family TyVar (f :: k) (n :: N) env :: k
+type instance TyVar (f :: k -> *) Z ((Proxy f',a), t) = f' 
+type instance TyVar (f :: k -> *) (S n) (h, t) = TyVar f n t 
+type instance TyVar (a :: *) Z ((f',a'), t) = a'
 
 -- | Returns a type variable representation 
 -- it is not pure, it adds variable in an environment, whence
 -- the type is an indexed-monad computation
-var :: TyVar f n FunVarNames f' => TM n (S n) (Ty f' f)
+var ::  TM n (S n) (Ty (TyVar f n FunVarNames) f)
 var = TM $ \e -> (Succ e, Ty (UVar (IntVar (toInt e))))
 
 -- | Returns a type variable representation
 -- Pure version of 'var' with explicit variable's type and an index.
-pvar :: TyVar f n FunVarNames f' => Proxy f -> Fin n -> Ty f' f
+pvar :: Proxy f -> Fin n -> Ty (TyVar f n FunVarNames) f
 pvar _ e = Ty (UVar (IntVar (toInt e)))
 
 -- | Builds an arrow type
