@@ -45,7 +45,7 @@ t2 = do
   m <- dynApply fmapDyn (toDyn (dictTy $$ (functTy $$ lstTy)) Dict)
   s <- dynApply (toDyn showt showC) (toDyn (showTy kt) (Dict :: Dict (Show Int)))
   f <- dynApply m s
-  r <- dynApply f (toDyn (lstTy $$ kt) i)
-  fromDynamic (lstTy $$ kt) r 
+  r <- dynApply f (toDyn kt i)
+  fromDynamic kt r 
   where
   i = [1 :: Int,2,3,4,5]

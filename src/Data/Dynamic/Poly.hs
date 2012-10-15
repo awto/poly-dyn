@@ -179,7 +179,9 @@ type TyG a = Ty a a
 
 -- | Ground type from 'TypeRep'
 kr :: TypeRep -> Ty a a
-kr r = Ty (UTerm (K r))
+kr = Ty . mk
+      where mk r = case splitTyConApp r of
+                     (n, t) -> foldl' (\n' -> UTerm . App n' . mk) (UTerm (KS (show n))) t
 
 -- | Ground type for any 'Typeable'
 kt :: Typeable a => TyG a
